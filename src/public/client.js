@@ -7,16 +7,13 @@
 const roversName = Immutable.Map({
     spi: ['Spirit', new Date(2010, 02, 01)],
     opp: ['Opportunity', new Date(2018, 06, 04)],
-    curo: ['Curiosity', new Date()]
+    curi: ['Curiosity', new Date()]
 });
 
 let store = {
     selectedRover: '',
     data: '',
-    date: '',
-    //rovers: Immutable.List(['Spirit', 'Opportunity', 'Curiosity']),
 }
-let intCount = 1;
 // add our markup to the page
 const root = document.getElementById('root')
 const rover = document.getElementById('rover')
@@ -30,34 +27,35 @@ const updateStore = (store, newState) => {
 
 const updatePhoto = (store, newState) => {
     store = Object.assign(store, newState)
-    renderRover(rover, store)
+    renderRover(root, rover, store)
 }
 const render = async (root, state) => {
     root.innerHTML = App(state)
 }
 
-const renderRover = async (root,rover, state) => {
+const renderRover = async (root, rover, state) => {
     rover.innerHTML = AppRover(state)
-    root.innerHTML = "";
+    rover.style.display = ""
+    console.log("aaaa" + store.selectedRover)
+    console.log(!store.selectedRover == '')
+    if (!store.selectedRover == '') {
+        root.style.display = "none"
+    }
+
 }
 
 const AppRover = (state) => {
-    let { selectedRover,data,date } = state
+    let { selectedRover, data } = state
     return `
+    <button onclick="render(root,resetData())" >Con cac</button>
       ${getAllPhotoOfRover(data)}
     `
 }
 
 // create content
 const App = (state) => {
-    let { selectedRover, data, date } = state
-    // console.log(selectedRover)
-    // if (selectedRover) {
-    //     return `
-    //     <p>${getAllPhotoOfRover(data)}</p>
-    //     `
-    // } else {
-        return `
+    let { selectedRover, data } = state
+    return `
         <header></header>
         <main>
             <section>
@@ -77,50 +75,39 @@ const App = (state) => {
         </main>
         <footer></footer>
     `
-    }
+}
 
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
     render(root, store)
-    // let current = window.location.href
-    // if(current.includes("&")){
-    //     let roverNameHreft = current.substring(current.indexOf("#"))
-    //     store.selectedRover = roverNameHreft.substring(1,roverNameHreft.indexOf("&"))
-    //     store.date = roverNameHreft.substring(roverNameHreft.indexOf("&")+1)
-    //     console.log(store.selectedRover)
-    //     console.log(store.date)
-    //     renderRover(rover, store)
-    // } 
+    //renderRover(root, rover, store)
 })
 
 // ------------------------------------------------------  COMPONENTS
 
-// Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
-const Greeting = (name) => {
-    if (name) {
-        return `
-            <h1>Welcome, ${name}!</h1>
-        `
-    }
 
-    return `
-        <h1>Hello!</h1>
-    `
-}
 //create nav link
 const CreateLi = () => {
     roversName.valueSeq().forEach(element => {
         let newLi = document.createElement("li")
-        let newA = document.createElement("a")
+        let newA = document.createElement("button")
         newLi.setAttribute("id", `${element[0].toLowerCase()}`)
-        console.log(element[1])
-        let dateSearch = new Date(element[1])
-        newA.setAttribute("onclick", `renderRover(rover,{selectedRover= '${element[0].toLowerCase()}',data='',date='${dateSearch.getFullYear()}-${dateSearch.getMonth()}-${dateSearch.getDate()}'} = store)`)
+        newA.setAttribute("onclick", `renderRover(root,rover,setState('${element[0].toLowerCase()}'))`)
         newA.innerText = element[0]
         newLi.appendChild(newA)
         navLink.appendChild(newLi)
     });
+}
+
+const setState = (selected) => {
+    return store.selectedRover = selected;
+}
+const resetData = () => {
+    render(root,store)
+    root.style.display = ""
+    rover.style.display = "none"
+    return store.data = ''
 }
 
 // Example of a pure function that renders infomation requested from the backend
@@ -128,30 +115,30 @@ const ImageOfTheDay = (apod) => {
     //console.log(apod)
     // If image does not already exist, or it is not from today -- request it again
     const today = new Date()
-    const photodate = new Date(apod.date)
-    console.log(photodate.getDate(), today.getDate());
 
-    console.log(photodate.getDate() === today.getDate());
     if (!apod || apod.date === today.getDate()) {
         getImageOfTheDay(store)
-        CreateLi()
-        
+        let a = document.getElementById("curiosity")
+        if (!a) {
+            CreateLi()
+        }
     }
-
-    // check if the photo of the day is actually type video!
-    if (apod.media_type === "video") {
-        return (`
+    else {
+        // check if the photo of the day is actually type video!
+        if (apod.media_type === "video") {
+            return (`
             <p>See today's featured video <a href="${apod.url}">here</a></p>
             <p>${apod.title}</p>
             <p>${apod.explanation}</p>
         `)
-    } else {
-        return (`
-            <img src="${apod.image.url}" height="350px" width="100%" />
+        } else {
+            return (`
+            <img src="${apod.image.url}" class="imgOfDay" />
             <p>${apod.image.explanation}</p>
         `)
+        }
     }
-    
+
 }
 //function manipulate rover data image
 const getAllPhotoOfRover = (data) => {
@@ -207,13 +194,25 @@ const getImageOfTheDay = (state) => {
 }
 
 const getPhoto = (state) => {
-    let { selectedRover, data, date } = state
-    let adate = new Date(date);
-    console.log(adate)
+    let { selectedRover, data } = state
+    let adate
+    console.log(selectedRover)
+    let findData
+    roversName.valueSeq().forEach(element => {
+        console.log(element[0].toLowerCase())
+        if (element[0].toLowerCase() == selectedRover) {
+            findData = element[1];
+        }
+    })
+    console.log("oh hay" + findData)
+    if (findData) {
+        adate = new Date(findData);
+    } else {
+        adate = new Date();
+    }
+
     fetch(`mars/${selectedRover}&${adate.getFullYear()}-${adate.getMonth()}-${adate.getDate()}`)
         .then(res => res.json())
         .then(data => updatePhoto(store, { data }))
-    //console.log(state.url)
-    //console.log(data)
     return data
 }

@@ -16,8 +16,14 @@ main {
   padding: 20px;
 }
 
+
+
 footer {
   /* footer styles */
+}
+.imgOfDay {
+  height: 350px;
+  width: 100%;
 }
 
 /* -------------------  TABLET  --------------------- */
