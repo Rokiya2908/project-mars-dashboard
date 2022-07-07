@@ -37,7 +37,6 @@ const renderRover = async (root, rover, state) => {
     rover.innerHTML = AppRover(state)
     rover.style.display = ""
     console.log("aaaa" + store.selectedRover)
-    console.log(!store.selectedRover == '')
     if (!store.selectedRover == '') {
         root.style.display = "none"
     }
@@ -59,16 +58,6 @@ const App = (state) => {
         <header></header>
         <main>
             <section>
-                <h3>Put things on the page!</h3>
-                <p>Here is an example section.</p>
-                <p>
-                    One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of
-                    the most popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video.
-                    This endpoint structures the APOD imagery and associated metadata so that it can be repurposed for other
-                    applications. In addition, if the concept_tags parameter is set to True, then keywords derived from the image
-                    explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
-                    but generally help with discoverability of relevant imagery.
-                </p>
                 ${ImageOfTheDay(data)}
                 
             </section>
@@ -96,6 +85,10 @@ const CreateLi = () => {
         newA.setAttribute("onclick", `renderRover(root,rover,setState('${element[0].toLowerCase()}'))`)
         newA.innerText = element[0]
         newLi.appendChild(newA)
+        let currentAttribute = navLink.getAttribute("class")
+        if (!currentAttribute.includes("navBar")) {
+            navLink.setAttribute("class", `${currentAttribute} navBar`)
+        }
         navLink.appendChild(newLi)
     });
 }
@@ -104,7 +97,7 @@ const setState = (selected) => {
     return store.selectedRover = selected;
 }
 const resetData = () => {
-    render(root,store)
+    render(root, store)
     root.style.display = ""
     rover.style.display = "none"
     return store.data = ''
@@ -112,7 +105,6 @@ const resetData = () => {
 
 // Example of a pure function that renders infomation requested from the backend
 const ImageOfTheDay = (apod) => {
-    //console.log(apod)
     // If image does not already exist, or it is not from today -- request it again
     const today = new Date()
 
@@ -122,6 +114,10 @@ const ImageOfTheDay = (apod) => {
         if (!a) {
             CreateLi()
         }
+        return (
+            `
+        <h1 id="loading">Loading...</h1>
+        `)
     }
     else {
         // check if the photo of the day is actually type video!
@@ -142,18 +138,22 @@ const ImageOfTheDay = (apod) => {
 }
 //function manipulate rover data image
 const getAllPhotoOfRover = (data) => {
-    //console.log(data)
     if (!data) {
         //init data for rover
-        getPhoto(store)
+        getPhoto(store, '')
+        return (
+            `
+            <h1 id="loading">Loading...</h1>
+            `)
     } else {
         let result = data.mars.photos
+        console.log('getall' + result.length)
         return (`
-        <div>
-            <p>${result[0].rover.name}</p>
-            <p>${result[0].rover.launch_date}</p>
-            <p>${result[0].rover.landing_date}</p>
-            <p>${result[0].rover.status}</p>
+        <div id = "detail">
+            <p>Rover Name   :${result[0].rover.name}</p>
+            <p>Launch Date  :${result[0].rover.launch_date}</p>
+            <p>Landing Date :${result[0].rover.landing_date}</p>
+            <p>Status       :${result[0].rover.status}</p>
         </div>
         ${getImage(result)}
         `)
@@ -169,7 +169,6 @@ function getImage(rover) {
         limitImage = rover.length
     }
     let result = "";
-    console.log(limitImage)
     for (let i = 0; i < limitImage; i++) {
         result += `
         <div>
@@ -192,27 +191,55 @@ const getImageOfTheDay = (state) => {
 
     return data
 }
-
-const getPhoto = (state) => {
-    let { selectedRover, data } = state
-    let adate
-    console.log(selectedRover)
+function getDate(selectedRover) {
     let findData
     roversName.valueSeq().forEach(element => {
-        console.log(element[0].toLowerCase())
         if (element[0].toLowerCase() == selectedRover) {
             findData = element[1];
         }
     })
-    console.log("oh hay" + findData)
     if (findData) {
         adate = new Date(findData);
     } else {
         adate = new Date();
     }
+    return adate;
+}
+function checker() {
 
-    fetch(`mars/${selectedRover}&${adate.getFullYear()}-${adate.getMonth()}-${adate.getDate()}`)
-        .then(res => res.json())
-        .then(data => updatePhoto(store, { data }))
+}
+const getPhoto = (state) => {
+    let { selectedRover, data } = state
+    let adate
+    adate = getDate(selectedRover);
+    let count = 1;
+    var check = false;
+    //while (data === "") {
+    // while ( !(count < 5)) {
+        //while (!state.data.length === 0) {
+        fetch(`mars/${selectedRover}&${adate.getFullYear()}-${adate.getMonth()}-${adate.getDate()}`)
+            .then(res => {
+                if (res.ok) {
+
+                    return res.json()
+                } else {
+                    console.log("vao day")
+                }
+            })
+            .then(data => {
+                console.log("hay nhi" + data.mars.photos[0].rover.name)
+                check = true
+                return updatePhoto(store, { data })
+            }).catch(
+                err => console.error(err)
+            )
+        adate.setDate(adate.getDate() - 1)
+        console.log('deo print luon' + check)
+        // if(count > 3){
+        //     break;
+        // }
+        count += 1;
+    // }
     return data
 }
+
