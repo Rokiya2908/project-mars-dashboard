@@ -47,7 +47,7 @@ const renderRover = async (root, rover, state) => {
 const AppRover = (state) => {
     let { selectedRover, data } = state
     return `
-    <button onclick="render(root,resetData())" >Con cac</button>
+    <button onclick="render(root,resetData())" class="home-button home-button-large">Home</button>
       ${getAllPhotoOfRover(data)}
     `
 }
@@ -150,13 +150,17 @@ const getAllPhotoOfRover = (data) => {
         let result = data.mars.photos
         return (`
         <div id = "detail">
-            <p>Rover Name     :${result[0].rover.name}</p>
-            <p>Launch Date    :${result[0].rover.launch_date}</p>
-            <p>Landing Date   :${result[0].rover.landing_date}</p>
-            <p>Status         :${result[0].rover.status}</p>
-            <p>Photo taken on :${result[0].earth_date}</p>
+            <p>Rover Name     : ${result[0].rover.name}</p>
+            <p>Launch Date    : ${result[0].rover.launch_date}</p>
+            <p>Landing Date   : ${result[0].rover.landing_date}</p>
+            <p>Status         : ${result[0].rover.status.toUpperCase()}</p>
+            <p>Photo taken on : ${result[0].earth_date}</p>
         </div>
-        ${getImage(result)}
+        <div id="gallery">
+            <ul class = "gallery">
+            ${getImage(result)}
+            </ul>
+        </div>
         `)
     }
 
@@ -164,17 +168,17 @@ const getAllPhotoOfRover = (data) => {
 
 function getImage(rover) {
     let limitImage = 0
-    if (rover.length > 25) {
-        limitImage = 25;
+    if (rover.length > 13) {
+        limitImage = 12;
     } else {
         limitImage = rover.length
     }
     let result = "";
     for (let i = 0; i < limitImage; i++) {
         result += `
-        <div>
-            <img src='${rover[i].img_src}' height="50%" width="70%">
-        </div>
+        <li>
+            <img src='${rover[i].img_src}' >
+        </li>
         `
     }
     return result;
