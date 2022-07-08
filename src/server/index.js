@@ -14,9 +14,14 @@ app.use('/', express.static(path.join(__dirname, '../public')))
 // your API calls
 app.get('/mars/:rover&:today', async (req, res) => {
     try {
-        console.log(req.params)
-        let mars = await fetch(`https://api.nasa.gov/mars-photos/api/v1/rovers/${req.params.rover}/photos?api_key=${process.env.API_KEY}&earth_date=${req.params.today}&page=1`)
-            .then(res => res.json())
+        let date = new Date(req.params.today)
+        let stringDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+        console.log(stringDate)
+        let mars = await fetch(`https://api.nasa.gov/mars-photos/api/v1/rovers/${req.params.rover}/photos?api_key=${process.env.API_KEY}&earth_date=${stringDate}&page=1`)
+            .then(res => res.json()).catch(
+                err => console.error(err)
+            )
+
         res.send({ mars })
     } catch (err) {
         console.log('error:', err);

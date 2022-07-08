@@ -14,6 +14,7 @@ let store = {
     selectedRover: '',
     data: '',
 }
+let check = true;
 // add our markup to the page
 const root = document.getElementById('root')
 const rover = document.getElementById('rover')
@@ -36,7 +37,7 @@ const render = async (root, state) => {
 const renderRover = async (root, rover, state) => {
     rover.innerHTML = AppRover(state)
     rover.style.display = ""
-    console.log("aaaa" + store.selectedRover)
+    console.log("rover choose " + store.selectedRover)
     if (!store.selectedRover == '') {
         root.style.display = "none"
     }
@@ -147,13 +148,13 @@ const getAllPhotoOfRover = (data) => {
             `)
     } else {
         let result = data.mars.photos
-        console.log('getall' + result.length)
         return (`
         <div id = "detail">
-            <p>Rover Name   :${result[0].rover.name}</p>
-            <p>Launch Date  :${result[0].rover.launch_date}</p>
-            <p>Landing Date :${result[0].rover.landing_date}</p>
-            <p>Status       :${result[0].rover.status}</p>
+            <p>Rover Name     :${result[0].rover.name}</p>
+            <p>Launch Date    :${result[0].rover.launch_date}</p>
+            <p>Landing Date   :${result[0].rover.landing_date}</p>
+            <p>Status         :${result[0].rover.status}</p>
+            <p>Photo taken on :${result[0].earth_date}</p>
         </div>
         ${getImage(result)}
         `)
@@ -198,6 +199,7 @@ function getDate(selectedRover) {
             findData = element[1];
         }
     })
+
     if (findData) {
         adate = new Date(findData);
     } else {
@@ -205,41 +207,40 @@ function getDate(selectedRover) {
     }
     return adate;
 }
-function checker() {
-
+function checker(data) {
+    if (!data) {
+        return false
+    } else {
+        return true
+    }
 }
-const getPhoto = (state) => {
+const getPhoto = (state, date) => {
     let { selectedRover, data } = state
     let adate
-    adate = getDate(selectedRover);
-    let count = 1;
-    var check = false;
-    //while (data === "") {
-    // while ( !(count < 5)) {
-        //while (!state.data.length === 0) {
-        fetch(`mars/${selectedRover}&${adate.getFullYear()}-${adate.getMonth()}-${adate.getDate()}`)
-            .then(res => {
-                if (res.ok) {
+    if (date === '') {
+        adate = getDate(selectedRover)
+    } else {
+        adate = new Date(date);
+        adate = adate.setDate(adate.getDate() - 1)
+    }
 
-                    return res.json()
-                } else {
-                    console.log("vao day")
-                }
-            })
-            .then(data => {
-                console.log("hay nhi" + data.mars.photos[0].rover.name)
-                check = true
+    adate = new Date(adate)
+    console.log(adate)
+    fetch(`mars/${selectedRover}&${adate.getFullYear()}-${adate.getMonth()}-${adate.getDate()}`)
+        .then(res => {
+            if (res.ok) {
+
+                return res.json()
+            }
+        })
+        .then(data => {
+            if (data.mars.photos.length === 0) {
+                getPhoto(state, adate)
+            } else
                 return updatePhoto(store, { data })
-            }).catch(
-                err => console.error(err)
-            )
-        adate.setDate(adate.getDate() - 1)
-        console.log('deo print luon' + check)
-        // if(count > 3){
-        //     break;
-        // }
-        count += 1;
-    // }
+        }).catch(
+            err => console.error(err)
+        )
     return data
 }
 
